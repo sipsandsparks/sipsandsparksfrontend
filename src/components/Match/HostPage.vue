@@ -18,7 +18,7 @@ const toastVisible = ref(false);
 const requestLoading = ref(false);
 const toastMessage = ref('Sending...');
 
-// Tracking attendance, drinks, and no-shows
+// State for tracking checkboxes
 const attendanceCheckedItems: Ref<Record<string, boolean>> = ref({});
 const drinkCheckedItems: Ref<Record<string, boolean>> = ref(
   Object.fromEntries(
@@ -27,7 +27,7 @@ const drinkCheckedItems: Ref<Record<string, boolean>> = ref(
     )
   )
 );
-const noShowCheckedItems: Ref<Record<string, boolean>> = ref({}); // New for tracking no-shows
+const noShowCheckedItems: Ref<Record<string, boolean>> = ref({}); // New state for No Show
 
 const eventParticipants = ref<AdminEventParticipant[]>(props.participants);
 
@@ -40,7 +40,7 @@ const updateCheckedItems = (participants: AdminEventParticipant[]) => {
     };
     noShowCheckedItems.value = {
       ...noShowCheckedItems.value,
-      [person.email]: person.noShow || false, // Add noShow field if it exists
+      [person.email]: person.noShow || false, // Default false if no show status doesn't exist
     };
   });
 };
@@ -84,6 +84,7 @@ const showToast = (message: string) => {
   }, 3000);
 };
 
+// Filter male and female attendees
 const maleAttendees = computed(() =>
   eventParticipants.value.filter((att) => att.gender === 'Male')
 );
@@ -101,7 +102,6 @@ watch(
   { deep: true }
 );
 </script>
-
 <template>
   <div class="body">
     <section class="contact">
@@ -116,9 +116,12 @@ watch(
             <label :for="'checkbox2-' + person.email">
               <span>{{ person.firstName }} {{ person.lastName }} | {{ person.email }}</span>
             </label>
+            <!-- Attendance -->
             <input type="checkbox" :id="'checkbox1-' + person.email" v-model="attendanceCheckedItems[person.email]" disabled />
+            <!-- Drinks -->
             <input type="checkbox" :id="'checkbox2-' + person.email" v-model="drinkCheckedItems[person.email]" />
-            <input type="checkbox" :id="'checkbox-noShow-' + person.email" v-model="noShowCheckedItems[person.email]" /> <!-- No show checkbox -->
+            <!-- No Show -->
+            <input type="checkbox" :id="'checkbox-ns-' + person.email" v-model="noShowCheckedItems[person.email]" /> <!-- No Show Checkbox -->
           </div>
 
           <br />
@@ -130,9 +133,12 @@ watch(
             <label :for="'checkbox4-' + person.email">
               <span>{{ person.firstName }} {{ person.lastName }} | {{ person.email }}</span>
             </label>
+            <!-- Attendance -->
             <input type="checkbox" :id="'checkbox3-' + person.email" v-model="attendanceCheckedItems[person.email]" disabled />
+            <!-- Drinks -->
             <input type="checkbox" :id="'checkbox4-' + person.email" v-model="drinkCheckedItems[person.email]" />
-            <input type="checkbox" :id="'checkbox-noShow-' + person.email" v-model="noShowCheckedItems[person.email]" /> <!-- No show checkbox -->
+            <!-- No Show -->
+            <input type="checkbox" :id="'checkbox-ns-' + person.email" v-model="noShowCheckedItems[person.email]" /> <!-- No Show Checkbox -->
           </div>
         </fieldset>
 
@@ -141,6 +147,8 @@ watch(
         </div>
       </form>
     </section>
+
+    <!-- Toast notification -->
     <div v-if="toastVisible" id="snackbar">{{ toastMessage }}</div>
   </div>
 </template>
