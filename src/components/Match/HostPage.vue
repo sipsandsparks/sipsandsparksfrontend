@@ -47,7 +47,7 @@ const updateCheckedItems = (participants: AdminEventParticipant[]) => {
 // Fetch participants when the component is mounted
 onMounted(async () => {
   try {
-    const response = await axios.get(
+    const response = await axios.get(event-participants/:eventId
       `https://sips-and-sparks-77e98866d158.herokuapp.com/event-participants/${props.eventId}`
     );
     if (response.data.attendees) {
