@@ -1,5 +1,4 @@
-<script setup lang="ts">
-import { computed, Ref, ref, watch } from 'vue';
+import { onMounted, computed, Ref, ref, watch } from 'vue';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import type { AdminEventParticipant } from '../MatchPage.vue';
@@ -45,21 +44,40 @@ const updateCheckedItems = (participants: AdminEventParticipant[]) => {
   });
 };
 
+// Fetch participants when the component is mounted
+onMounted(async () => {
+  try {
+    const response = await axios.get(
+      `https://sips-and-sparks-77e98866d158.herokuapp.com/event-participants/${props.eventId}`
+    );
+    if (response.data.attendees) {
+      eventParticipants.value = response.data.attendees;
+      updateCheckedItems(response.data.attendees); // Update checkboxes with fetched data
+    }
+  } catch (error) {
+    console.error("Failed to fetch participants", error);
+  }
+});
+
 // Initialize checked items
 updateCheckedItems(eventParticipants.value);
 
+// Update refreshForm to include noShow data
 const refreshForm = async () => {
   requestLoading.value = true;
   try {
+    const payload = {
+      firstName: props.firstName,
+      lastName: props.lastName,
+      email: props.email,
+      eventId: props.eventId,
+      noShowStatus: noShowCheckedItems.value, // Send noShow data
+    };
+
     // Make the POST request to the backend server
     const response = await axios.post(
       'https://sips-and-sparks-77e98866d158.herokuapp.com/event-participants',
-      {
-        firstName: props.firstName,
-        lastName: props.lastName,
-        email: props.email,
-        eventId: props.eventId,
-      }
+      payload
     );
 
     if (response.data.attendees) {
@@ -75,23 +93,6 @@ const refreshForm = async () => {
   }
 };
 
-// Helper to display toast notifications
-const showToast = (message: string) => {
-  toastMessage.value = message;
-  toastVisible.value = true;
-  setTimeout(() => {
-    toastVisible.value = false;
-  }, 3000);
-};
-
-// Filter male and female attendees
-const maleAttendees = computed(() =>
-  eventParticipants.value.filter((att) => att.gender === 'Male')
-);
-const femaleAttendees = computed(() =>
-  eventParticipants.value.filter((att) => att.gender === 'Female')
-);
-
 // Watch for changes in drink selections and store in cookies
 watch(
   () => drinkCheckedItems.value,
@@ -101,54 +102,3 @@ watch(
   },
   { deep: true }
 );
-</script>
-<template>
-  <div class="body">
-    <section class="contact">
-      <h2>MATCH FORM</h2>
-      <form @submit.prevent="refreshForm">
-        <fieldset class="event-selection">
-          <legend>
-            Male Attendees<br />
-            <span class="legend-note">The first checkbox indicates if they have accessed their match form.</span>
-          </legend>
-          <div v-for="person in maleAttendees" :key="person.id" class="participant-row">
-            <label :for="'checkbox2-' + person.email">
-              <span>{{ person.firstName }} {{ person.lastName }} | {{ person.email }}</span>
-            </label>
-            <!-- Attendance -->
-            <input type="checkbox" :id="'checkbox1-' + person.email" v-model="attendanceCheckedItems[person.email]" disabled />
-            <!-- Drinks -->
-            <input type="checkbox" :id="'checkbox2-' + person.email" v-model="drinkCheckedItems[person.email]" />
-            <!-- No Show -->
-            <input type="checkbox" :id="'checkbox-ns-' + person.email" v-model="noShowCheckedItems[person.email]" /> <!-- No Show Checkbox -->
-          </div>
-
-          <br />
-          <legend>
-            Female Attendees<br />
-            <span class="legend-note">The first checkbox indicates if they have accessed their match form.</span>
-          </legend>
-          <div v-for="person in femaleAttendees" :key="person.id" class="participant-row">
-            <label :for="'checkbox4-' + person.email">
-              <span>{{ person.firstName }} {{ person.lastName }} | {{ person.email }}</span>
-            </label>
-            <!-- Attendance -->
-            <input type="checkbox" :id="'checkbox3-' + person.email" v-model="attendanceCheckedItems[person.email]" disabled />
-            <!-- Drinks -->
-            <input type="checkbox" :id="'checkbox4-' + person.email" v-model="drinkCheckedItems[person.email]" />
-            <!-- No Show -->
-            <input type="checkbox" :id="'checkbox-ns-' + person.email" v-model="noShowCheckedItems[person.email]" /> <!-- No Show Checkbox -->
-          </div>
-        </fieldset>
-
-        <div class="button-box">
-          <button type="submit" :disabled="requestLoading || disableRefresh">REFRESH</button>
-        </div>
-      </form>
-    </section>
-
-    <!-- Toast notification -->
-    <div v-if="toastVisible" id="snackbar">{{ toastMessage }}</div>
-  </div>
-</template>
