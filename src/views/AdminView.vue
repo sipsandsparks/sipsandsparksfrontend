@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import SuperAdminPage from '@/components/Admin/SuperAdminPage.vue';
+import HostPage from '@/components/HostPage.vue'; // Import HostPage
 import MobileBottomInfo from '@/components/MobileBottomInfo.vue';
-import { defineProps } from 'vue';
+import { defineProps, ref } from 'vue';
 import { useHead } from '@vueuse/head';
 
 useHead({
@@ -13,17 +14,21 @@ useHead({
   ]
 });
 
+const isHostPage = ref(true); // Add logic to switch between SuperAdminPage and HostPage
 defineProps({
   isDesktop: Boolean,
-})
+});
 </script>
-
 <template>
   <div :class="!isDesktop ? 'container' : ''">
-      <SuperAdminPage :class="!isDesktop ? 'content' : ''" />
+      <!-- Conditionally render HostPage or SuperAdminPage -->
+      <HostPage v-if="isHostPage" :class="!isDesktop ? 'content' : ''" />
+      <SuperAdminPage v-else :class="!isDesktop ? 'content' : ''" />
       <MobileBottomInfo v-if="!isDesktop" class="bottom" />
   </div>
 </template>
+
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@300..900&family=Syncopate:wght@400;700&display=swap');
