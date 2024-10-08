@@ -23,15 +23,15 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import type { AdminEventParticipant } from '../MatchPage.vue';
 
-const props = defineProps<{
-  isTablet: boolean;
-  participants: AdminEventParticipant[];
-  eventId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  disableRefresh?: boolean;
-}>();
+const props = defineProps({
+  isTablet: Boolean,
+  participants: Array,
+  eventId: String,
+  firstName: String,
+  lastName: String,
+  email: String,
+  disableRefresh: Boolean,
+});
 
 const toastVisible = ref(false);
 const requestLoading = ref(false);
